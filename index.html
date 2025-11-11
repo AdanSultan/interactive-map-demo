@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Route Map Demo</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    /* --- Global Styles --- */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Poppins", Arial, sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 30px 40px;
+      transition: all 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #00796b;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-size: 15px;
+      color: #555;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 500;
+      margin-right: 5px;
+      color: #444;
+    }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-width: 160px;
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+    }
+
+    select:focus {
+      border-color: #00796b;
+      outline: none;
+    }
+
+    #map {
+      height: 520px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: #777;
+    }
+
+    footer a {
+      color: #00796b;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Interactive Route Map</h2>
+    <p>Select your starting point and destination to view the route on the map.</p>
+
+    <div class="controls">
+      <div>
+        <label for="from">From:</label>
+        <select id="from">
+          <option value="">Select start</option>
+          <option value="athens">Athens</option>
+          <option value="thessaloniki">Thessaloniki</option>
+          <option value="patras">Patras</option>
+          <option value="heraklion">Heraklion</option>
+          <option value="chania">Chania</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="to">To:</label>
+        <select id="to">
+          <option value="">Select destination</option>
+          <option value="athens">Athens</option>
+          <option value="thessaloniki">Thessaloniki</option>
+          <option value="patras">Patras</option>
+          <option value="heraklion">Heraklion</option>
+          <option value="chania">Chania</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <footer>
+      <p>Created by <a href="#">Adan Sultan</a> • Demo Project</p>
+    </footer>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // --- Location Coordinates ---
+    const locations = {
+      athens: [37.9838, 23.7275],
+      thessaloniki: [40.6401, 22.9444],
+      patras: [38.2466, 21.7346],
+      heraklion: [35.3387, 25.1442],
+      chania: [35.5138, 24.0180]
+    };
+
+    // --- Initialize Map ---
+    const map = L.map("map").setView([38.5, 23.5], 7);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    let routeLine = null;
+    let markers = [];
+
+    // --- Draw Route ---
+    function drawRoute(from, to) {
+      // Clear existing route & markers
+      if (routeLine) map.removeLayer(routeLine);
+      markers.forEach((m) => map.removeLayer(m));
+      markers = [];
+
+      if (!from || !to || from === to) return;
+
+      const fromCoords = locations[from];
+      const toCoords = locations[to];
+
+      // Add markers
+      const fromMarker = L.marker(fromCoords).addTo(map).bindPopup(`<b>${capitalize(from)}</b>`);
+      const toMarker = L.marker(toCoords).addTo(map).bindPopup(`<b>${capitalize(to)}</b>`);
+      markers.push(fromMarker, toMarker);
+
+      // Draw line
+      routeLine = L.polyline([fromCoords, toCoords], {
+        color: "#00796b",
+        weight: 5,
+        opacity: 0.9
+      }).addTo(map);
+
+      map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+    }
+
+    // --- Dropdown Event Listeners ---
+    document.getElementById("from").addEventListener("change", () => {
+      drawRoute(
+        document.getElementById("from").value,
+        document.getElementById("to").value
+      );
+    });
+
+    document.getElementById("to").addEventListener("change", () => {
+      drawRoute(
+        document.getElementById("from").value,
+        document.getElementById("to").value
+      );
+    });
+
+    // --- Helper Function ---
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+  </script>
+</body>
+</html>
